@@ -1,0 +1,3 @@
+sequana>=0.13
+sequana_pipetools>=0.7.5
+bioconvert

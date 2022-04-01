@@ -1,0 +1,102 @@
+#
+#  This file is part of Sequana software
+#
+#  Copyright (c) 2016-2021 - Sequana Dev Team (https://sequana.readthedocs.io)
+#
+#  Distributed under the terms of the 3-clause BSD license.
+#  The full license is in the LICENSE file, distributed with this software.
+#
+#  Website:       https://github.com/sequana/sequana
+#  Documentation: http://sequana.readthedocs.io
+#  Contributors:  https://github.com/sequana/sequana/graphs/contributors
+##############################################################################
+import os
+
+os.makedirs("tmp", exist_ok=True)
+
+from sequana_pipetools import snaketools as sm
+
+# This must be defined before the include
+configfile: "config.yaml"
+
+
+# A convenient manager
+manager = sm.PipelineManager("depletion", config)
+
+
+
+def set_output():
+    expected_output = expand("cleaned/{sample}_1.fastq.gz", sample=manager.samples)
+    if manager.paired:
+        expected_output += expand("cleaned/{sample}_2.fastq.gz", sample=manager.samples)
+    return expected_output
+
+
+rule all:
+    input:
+        set_output()
+
+
+rule index:
+    input:
+        str(config['general']['reference'])
+    output: 
+        str(config['general']['reference'])+".bwt"
+    shell:
+       """
+       bwa index {input}
+       """
+
+
+if config['general']['mode'] == "selection":
+    rule depletion_selection:
+        input:
+            fastq=manager.getrawdata(),
+            index=config['general']['reference']+".bwt"
+        output:
+            R1="cleaned/{sample}_1.fastq.gz",
+            R2="cleaned/{sample}_2.fastq.gz",
+            temp=temp("cleaned/{sample}.fastq.gz")
+        threads: config["depletion_selection"]["threads"]
+        params:
+            ref    = config["general"]["reference"],
+            paired = manager.paired,
+            mode   = config["general"]["mode"]
+        shell:
+            """
+            bwa mem {params.ref} {input.fastq[0]} {input.fastq[1]} -t {threads} > tmp/{wildcards.sample}.sam
+            samtools view -bS tmp/{wildcards.sample}.sam > tmp/{wildcards.sample}.bam
+
+            # uses -f2 to keep only read mapped in proper paired
+            if test {params.mode} == "selection"
+            then
+                samtools view -b -f2 -F 256 tmp/{wildcards.sample}.bam > tmp/{wildcards.sample}_both_mapped.bam
+            	bioconvert bam2fastq tmp/{wildcards.sample}_both_mapped.bam cleaned/{wildcards.sample}.fastq.gz --force
+            else
+                samtools view -b -f 12 -F 256 tmp/{wildcards.sample}.bam > tmp/{wildcards.sample}_both_unmapped.bam
+            	bioconvert bam2fastq tmp/{wildcards.sample}_both_unmapped.bam cleaned/{wildcards.sample}.fastq.gz --force
+            fi
+            """
+
+#sequana_multiqc_input = []
+#include: sm.modules['multiqc/2.0']
+
+
+# Those rules takes a couple of seconds so no need for a cluster
+#localrules: multiqc
+
+
+onsuccess:
+    shell("chmod -R g+w .")
+
+    import colorlog
+    log = colorlog.getLogger("sequana.depletion")
+    log.setLevel("INFO")
+
+    manager.teardown()
+    print("Once done, please clean up the directory using\n'make clean'")
+
+onerror:
+    from sequana_pipetools.errors import PipeError
+    p = PipeError("depletion")
+    p.status()
