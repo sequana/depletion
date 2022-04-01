@@ -12,7 +12,7 @@ with open("requirements.txt") as fh:
 
 
 _MAJOR               = 0
-_MINOR               = 8
+_MINOR               = 1
 _MICRO               = 0
 version = f"{_MAJOR}.{_MINOR}.{_MICRO}"
 release = f"{_MAJOR}.{_MINOR}"
@@ -23,21 +23,20 @@ metainfo = {
     'version': version,
     'license' : 'new BSD',
     'url' : "https://github.com/sequana/",
-    'description': "A short description" ,
+    'description': "Deplete or select reads from Fastq files" ,
     'platforms' : ['Linux', 'Unix', 'MacOsX', 'Windows'],
-    'keywords' : ['A list of keywords separated by commas'],
+    'keywords' : ["sequana", "NGS", "workflows","depletion"],
     'classifiers' : [
-          'Development Status :: 4 - Beta',
-          #'Development Status :: 5 - Production/Stable',
+          'Development Status :: 5 - Production/Stable',
           'Intended Audience :: Education',
           'Intended Audience :: End Users/Desktop',
           'Intended Audience :: Developers',
           'Intended Audience :: Science/Research',
           'License :: OSI Approved :: BSD License',
           'Operating System :: OS Independent',
-          'Programming Language :: Python :: 3.6',
           'Programming Language :: Python :: 3.7',
           'Programming Language :: Python :: 3.8',
+          'Programming Language :: Python :: 3.9',
           'Topic :: Software Development :: Libraries :: Python Modules',
           'Topic :: Scientific/Engineering :: Bio-Informatics',
           'Topic :: Scientific/Engineering :: Information Analysis',
