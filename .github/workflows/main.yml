@@ -15,9 +15,16 @@ jobs:
     strategy:
       max-parallel: 5
       matrix:
-        python: [3.7,3.8]
+        python: [3.7,3.8,3.9]
+      fail-fast: false
+
 
     steps:
+
+    - name: install graphviz
+      run: |
+        sudo apt-get install -y graphviz
+
     - name: checkout git repo
       uses: actions/checkout@v2
 
@@ -26,16 +33,21 @@ jobs:
       with:
         python-version: ${{ matrix.python }}
 
-    - name: conda
+    - name: Add conda to system path
       run: |
         # $CONDA is an environment variable pointing to the root of the miniconda directory
         echo $CONDA/bin >> $GITHUB_PATH
         conda update ruamel_yaml
-        conda install conda.yml
+
+    - name: conda
+      run: |
+        conda install -c conda-forge mamba --quiet
+        mamba install -c bioconda -c conda-forge --quiet -y bwa bamtools samtools 
 
     - name: Install dependencies
       run: |
-        pip install coveralls pytest-cov pytest
+        pip install coveralls pytest-cov pytest pytest-xdist
+        pip install bioconvert
 
     - name: install package itself
       run: |
@@ -43,7 +55,7 @@ jobs:
 
     - name: testing
       run: |
-        pytest --cov-report term --cov=sequana_pipelines.{{cookiecutter.name}}
+        pytest --cov-report term --cov=sequana_pipelines.depletion
     - name: coveralls
       run: |
         echo $COVERALLS_REPO_TOKEN
