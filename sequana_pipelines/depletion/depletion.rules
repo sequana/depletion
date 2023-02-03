@@ -19,18 +19,43 @@ from sequana_pipetools import snaketools as sm
 # This must be defined before the include
 configfile: "config.yaml"
 
+sequana_wrapper_branch = "main"
 
 # A convenient manager
 manager = sm.PipelineManager("depletion", config)
 
+def get_samtools_options():
 
+    samtools_options = {
+    "selection": {
+        # Keep reads mapped in proper pair
+        "paired": "-f2",
+        # Discard unmapped reads
+        "single": "-F4"},
+    "depletion": {
+        # Keep reads when unmapped and mate unmapped
+        "paired": "-f12",
+        # Keep reads unmapped
+        "single": "-f4"}}
+
+    mode = config["general"]["mode"]
+    paired = "paired" if manager.paired else "single"
+
+    return samtools_options[mode][paired]
 
 def set_output():
-    expected_output = expand("cleaned/{sample}_1.fastq.gz", sample=manager.samples)
     if manager.paired:
-        expected_output += expand("cleaned/{sample}_2.fastq.gz", sample=manager.samples)
+        expected_output = expand("{sample}/{sample}_filtered_1.fastq.gz", sample=manager.samples)
+        expected_output += expand("{sample}/{sample}_filtered_2.fastq.gz", sample=manager.samples)
+    else:
+        expected_output = expand("{sample}/{sample}_filtered.fastq.gz", sample=manager.samples)
     return expected_output
 
+def set_bioconvert_output():
+    if manager.paired:
+        return ["{sample}/{sample}_filtered_1.fastq.gz", "{sample}/{sample}_filtered_2.fastq.gz"]
+    else:
+        return "{sample}/{sample}_filtered.fastq.gz"
 
 rule all:
     input:
@@ -39,44 +64,65 @@ rule all:
 
 rule index:
     input:
-        str(config['general']['reference'])
+        config['general']['reference']
     output: 
-        str(config['general']['reference'])+".bwt"
+        bwa_bwt = config['general']['reference'] + ".bwt",
+        fai = config['general']['reference'] + ".fai"
+    params:
+        options="",
+        index_algorithm = config['bwa']['index_algorithm']
+    threads: config['bwa']['threads']
+    container:
+        "https://zenodo.org/record/6794508/files/sequana_tools_0.14.1.img"
+    wrapper:
+        f"{sequana_wrapper_branch}/wrappers/bwa/build"
+
+rule bwa:
+    input:
+        fastq = manager.getrawdata(),
+        bwa_bwt = config['general']['reference']+".bwt",
+        reference = config["general"]["reference"],
+        #fai = config['general']['reference']+".fai"
+    output:
+        sorted="{sample}/{sample}.sorted.bam",
+    log:
+        "{sample}/{sample}.log"
+    threads: config["bwa"]["threads"]
+    params:
+        options = config["bwa"]["options"],
+        tmp_directory = config["bwa"]["tmp_directory"]
+    container:
+        "https://zenodo.org/record/6794508/files/sequana_tools_0.14.1.img"
+    wrapper:
+        f"{sequana_wrapper_branch}/wrappers/bwa/align"
+
+rule samtools:
+    input:
+        bam = "{sample}/{sample}.sorted.bam",
+    output:
+        bam = "{sample}/{sample}.sorted.filtered.bam"
+    log:
+    threads: config["samtools"]["threads"]
+    params:
+        options=get_samtools_options(),
+    container:
+        "https://zenodo.org/record/6794508/files/sequana_tools_0.14.1.img"
     shell:
-       """
-       bwa index {input}
-       """
+        """
+        samtools view -b {params.options} -F 256 {input.bam} > {output.bam}
+        """
 
-
-if config['general']['mode'] == "selection":
-    rule depletion_selection:
-        input:
-            fastq=manager.getrawdata(),
-            index=config['general']['reference']+".bwt"
-        output:
-            R1="cleaned/{sample}_1.fastq.gz",
-            R2="cleaned/{sample}_2.fastq.gz",
-            temp=temp("cleaned/{sample}.fastq.gz")
-        threads: config["depletion_selection"]["threads"]
-        params:
-            ref    = config["general"]["reference"],
-            paired = manager.paired,
-            mode   = config["general"]["mode"]
-        shell:
-            """
-            bwa mem {params.ref} {input.fastq[0]} {input.fastq[1]} -t {threads} > tmp/{wildcards.sample}.sam
-            samtools view -bS tmp/{wildcards.sample}.sam > tmp/{wildcards.sample}.bam
-
-            # uses -f2 to keep only read mapped in proper paired
-            if test {params.mode} == "selection"
-            then
-                samtools view -b -f2 -F 256 tmp/{wildcards.sample}.bam > tmp/{wildcards.sample}_both_mapped.bam
-            	bioconvert bam2fastq tmp/{wildcards.sample}_both_mapped.bam cleaned/{wildcards.sample}.fastq.gz --force
-            else
-                samtools view -b -f 12 -F 256 tmp/{wildcards.sample}.bam > tmp/{wildcards.sample}_both_unmapped.bam
-            	bioconvert bam2fastq tmp/{wildcards.sample}_both_unmapped.bam cleaned/{wildcards.sample}.fastq.gz --force
-            fi
-            """
+rule bam_to_fastq:
+    input:
+        bam = "{sample}/{sample}.sorted.filtered.bam"
+    output:
+        set_bioconvert_output()
+    container:
+        "https://zenodo.org/record/7470179/files/bioconvert_0.6.2.img"
+    shell:
+        """
+        bioconvert bam2fastq {input.bam} {wildcards.sample}/{wildcards.sample}_filtered.fastq.gz --force
+        """
 
 #sequana_multiqc_input = []
 #include: sm.modules['multiqc/2.0']

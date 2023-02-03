@@ -1,11 +1,11 @@
 # Schema validator for the quality_control
-# author: Thomas Cokelaer
+# author: Thomas Cokelaer, Etienne Kornobis
 
 type: map
 mapping:
     "input_directory":
         type: str
-        required: False
+        required: True
     "input_readtag":
         type: str
         required: False
@@ -22,10 +22,24 @@ mapping:
                type: str
                required: True
                enum: [selection, depletion]
-    "depletion_selection":
+    "bwa":
         type: map
         mapping:
-          "threads":
+            "index_algorithm":
+                type: str
+                required: False
+            "options":
+                type: str
+                required: False
+            "threads":
                 type: int
-                range: { min: 1}
-
+                required: False
+            "tmp_directory":
+                type: str
+                required: False
+    "samtools":
+        type: map
+        mapping:
+            "threads":
+                type: int
+                required: False

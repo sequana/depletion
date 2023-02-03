@@ -23,6 +23,11 @@ general:
     reference:
     mode: "selection"
 
+bwa:
+    index_algorithm: is
+    options: -T 30 -M
+    threads: 4
+    tmp_directory: ./tmp
 
-depletion_selection:
+samtools:
     threads: 4
