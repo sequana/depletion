@@ -12,7 +12,7 @@ with open("requirements.txt") as fh:
 
 
 _MAJOR               = 0
-_MINOR               = 8
+_MINOR               = 2
 _MICRO               = 0
 version = f"{_MAJOR}.{_MINOR}.{_MICRO}"
 release = f"{_MAJOR}.{_MINOR}"
