@@ -59,7 +59,6 @@ Requirements
 This pipelines requires the following executable(s):
 
 - bwa
-- bioconvert
 - samtools
 - bamtools
 
@@ -85,6 +84,8 @@ Changelog
 ========= ====================================================================
 Version   Description
 ========= ====================================================================
+0.2.0     * handle paired/unpaired data
+          * refactorise to use containers/apptainers
 0.1.0     **First release.**
 ========= ====================================================================
 

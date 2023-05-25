@@ -1,0 +1,16 @@
+name: sequana_variant_calling
+
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+
+dependencies:
+  - bwa
+  - samtools>=1.15
+  - pigz
+  - pip
+  - pip:
+    - sequana
+
+

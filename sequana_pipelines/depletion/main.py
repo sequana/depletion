@@ -17,6 +17,7 @@ import shutil
 import subprocess
 
 from sequana_pipetools.options import *
+from sequana_pipetools.options import before_pipeline
 from sequana_pipetools.misc import Colors
 from sequana_pipetools.info import sequana_epilog, sequana_prolog
 from sequana_pipetools import SequanaManager
@@ -36,7 +37,6 @@ class Options(argparse.ArgumentParser):
             epilog=epilog,
             formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         )
-
         # add a new group of options to the parser
         so = SlurmOptions()
         so.add_options(self)
@@ -56,6 +56,8 @@ class Options(argparse.ArgumentParser):
         pipeline_group.add_argument("--mode", dest="mode", required=True, choices=["selection", "depletion"])
         pipeline_group.add_argument("--reference", dest="reference", required=True, 
             help="reference from which to select or deplete reads")
+
+        self.add_argument("--run", default=False, action="store_true", help="execute the pipeline directly")
 
     def parse_args(self, *args):
         args_list = list(*args)
@@ -79,8 +81,6 @@ def main(args=None):
         args = sys.argv
 
     # whatever needs to be called by all pipeline before the options parsing
-    from sequana_pipetools.options import before_pipeline
-
     before_pipeline(NAME)
 
     # option parsing including common epilog
@@ -91,17 +91,10 @@ def main(args=None):
 
     # create the beginning of the command and the working directory
     manager.setup()
-    from sequana import logger
-
-    logger.setLevel(options.level)
-    logger.name = "sequana_depletion"
-    logger.info(f"#Welcome to sequana_depletion pipeline.")
 
     # fill the config file with input parameters
     if options.from_project is None:
-        # fill the config file with input parameters
         cfg = manager.config.config
-        # EXAMPLE TOREPLACE WITH YOUR NEEDS
         cfg.input_directory = os.path.abspath(options.input_directory)
         cfg.input_pattern = options.input_pattern
         manager.exists(cfg.input_directory)
@@ -111,6 +104,9 @@ def main(args=None):
     # finalise the command and save it; copy the snakemake. update the config
     # file and save it.
     manager.teardown()
+
+    if options.run:
+        subprocess.Popen(["sh", "{}.sh".format(NAME)], cwd=options.workdir)
 
 
 if __name__ == "__main__":

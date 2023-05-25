@@ -12,6 +12,7 @@ mapping:
     "input_pattern":
         type: str
         required: False
+
     "general":
         type: map
         mapping:
@@ -22,10 +23,17 @@ mapping:
                type: str
                required: True
                enum: [selection, depletion]
-    "depletion_selection":
-        type: map
-        mapping:
+
+    "apptainers":
+        type: any
+
+    "mapping":
+      type: map
+      mapping:
           "threads":
-                type: int
-                range: { min: 1}
+             type: int
+             range: { min: 1}
+          "options":
+            type: str
+            required: False
 
