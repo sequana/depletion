@@ -35,41 +35,51 @@ rule all:
         get_final_outputs()
 
 
-rule index:
+rule bwa_index:
     input:
-        str(config['general']['reference'])
+        reference=str(config['general']['reference'])
     output:
-        str(config['general']['reference'])+".bwt"
+        bwa_bwt=str(config['general']['reference'])+".bwt",
+        fai=str(config['general']['reference'])+".fai",
+    log:
+        "reference/build.log"
+    params:
+        options="",
+        index_algorithm=config["bwa_index"]["index_algorithm"]
+    threads: 2
+    resources:
+        **config["bwa_index"]["resources"]
     container:
         config['apptainers']['bwa']
-    shell:
-       """
-       bwa index {input}
-       """
+    wrapper:
+       f"{manager.wrappers}/wrappers/bwa/build"
 
 
-rule mapping:
+rule bwa:
     input:
         fastq=manager.getrawdata(),
-        index=config['general']['reference']+".bwt"
+        index=rules.bwa_index.output.bwa_bwt,
+        fai=rules.bwa_index.output.fai,
+        reference=rules.bwa_index.input.reference
     output:
-        temp("{sample}/mapping/{sample}.sam"),
+        sorted=temp("{sample}/mapping/{sample}.sam"),
+    log:
+        "{sample}/bwa/bwa.log"
     params:
-        reference=config['general']['reference'],
-        options=config['mapping'].get("options", "")
+        options=config['bwa'].get("options", ""),
+        tmp_directory=config["bwa"]["tmp_directory"]
     threads:
-        config["mapping"]["threads"]
+        config["bwa"]["threads"]
+    resources:
+        **config["bwa"]["resources"]
     container:
         config['apptainers']['bwa']
-    log:
-        "{sample}/mapping/mapping.log"
-    shell:
-        """
-        bwa mem {params.options} -t {threads} {params.options} {params.reference} {input.fastq[0]} {input.fastq[1]} > {output} 2>{log}
-        """
+    wrapper:
+        f"{manager.wrappers}/wrappers/bwa/align"
 
 
 rule sam2bam:
+    """SAM to BAM conversion"""
     input:
         "{sample}/mapping/{sample}.sam"
     output:
@@ -80,6 +90,7 @@ rule sam2bam:
         """
         samtools view -bS {input} > {output}
         """
+
 
 def get_depletion_selection_outputs():
     if manager.paired:
