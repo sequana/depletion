@@ -70,7 +70,7 @@ rule mapping:
 
 
 rule sam2bam:
-    input: 
+    input:
         "{sample}/mapping/{sample}.sam"
     output:
         temp("{sample}/mapping/{sample}.bam")
@@ -147,6 +147,4 @@ onsuccess:
     print("Once done, please clean up the directory using\n'make clean'")
 
 onerror:
-    from sequana_pipetools.errors import PipeError
-    p = PipeError("depletion")
-    p.status()
+    manager.onerror()
