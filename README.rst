@@ -84,6 +84,7 @@ Changelog
 ========= ====================================================================
 Version   Description
 ========= ====================================================================
+0.3.0     * use click and new sequana_pipetools. convert to pyproject
 0.2.0     * handle paired/unpaired data
           * refactorise to use containers/apptainers
 0.1.0     **First release.**

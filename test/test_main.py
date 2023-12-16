@@ -1,22 +1,30 @@
 import os
 import subprocess
-import sys
+import tempfile
 
-import sequana_pipelines.depletion.main as m
+from sequana_pipelines.depletion.main import main
+
+from click.testing import CliRunner
+
+
 
 from . import test_dir
+input_dir = os.sep.join((test_dir, 'data'))
 
-def test_standalone_subprocess(tmpdir):
-    input_dir = os.sep.join((test_dir, 'data'))
-    cmd = ["test", "--input-directory", input_dir, "--working-directory", str(tmpdir), "--force"]
+def test_standalone_subprocess():
+    directory = tempfile.TemporaryDirectory()
+    cmd = ["test", "--input-directory", input_dir, "--working-directory", directory.name, "--force"]
     subprocess.call(cmd)
 
 
-def test_standalone_script(tmpdir):
-    input_dir = os.sep.join((test_dir, 'data'))
-    sys.argv = ["test", "--input-directory", input_dir, "--working-directory", str(tmpdir), "--force", "--mode",
-"selection", "--reference", "{input_dir}/measles.fa"]
-    m.main()
+def test_standalone_script():
+
+    directory = tempfile.TemporaryDirectory()
+    args = ["--input-directory", input_dir, "--working-directory", directory.name, "--force", "--mode",
+"selection", "--reference-file", f"{input_dir}/measles.fa"]
+    runner = CliRunner()
+    results = runner.invoke(main, args)
+    assert results.exit_code == 0
 
 
 def test_version():

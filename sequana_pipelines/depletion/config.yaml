@@ -6,7 +6,7 @@
 # If input_directory provided, use it otherwise if input_pattern provided,
 # use it, otherwise use input_samples.
 # ============================================================================
-
+sequana_wrappers: "v23.12.5"
 
 input_directory: /home/cokelaer/Work/github/forked/sequana_pipelines/depletion/test/data
 input_readtag: _R[12]_
@@ -30,7 +30,18 @@ general:
     reference: /home/cokelaer/Work/github/forked/sequana_pipelines/depletion/test/data/measles.fa
     mode: selection
 
-mapping:
+
+
+bwa_index:
+    index_algorithm: is
+    resources:
+        mem: 4G
+
+
+bwa:
+    options: -T 30 -M
     threads: 4
-    options: ""
+    tmp_directory: ./tmp
+    resources:
+        mem: 8G
 
