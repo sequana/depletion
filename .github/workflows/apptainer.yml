@@ -53,6 +53,6 @@ jobs:
 
     - name: testing
       run: |
-        sequana_depletion --mode selection --input-directory test/data/ --reference test/data/measles.fa --use-apptainer && cd depletion && sh depletion.sh
+        sequana_depletion --mode selection --input-directory test/data/ --reference-file test/data/measles.fa --use-apptainer && cd depletion && sh depletion.sh
 
 
