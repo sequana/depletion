@@ -20,7 +20,7 @@ def test_standalone_subprocess():
 def test_standalone_script():
 
     directory = tempfile.TemporaryDirectory()
-    args = ["--input-directory", input_dir, "--working-directory", directory.name, "--force", "--mode",
+    args = ["--input-directory", input_dir, "--working-directory", directory.name, "--force", "--mode", 
 "selection", "--reference-file", f"{input_dir}/measles.fa"]
     runner = CliRunner()
     results = runner.invoke(main, args)
