@@ -13,7 +13,7 @@ input_readtag: _R[12]_
 input_pattern: '*fastq.gz'
 
 apptainers:
-    bwa: https://zenodo.org/record/7970243/files/bwa_0.7.17.img
+    bwa: https://zenodo.org/record/7341710/files/sequana_tools_0.14.5.img
     samtools: https://zenodo.org/record/7437898/files/samtools_1.16.1.img
     pigz: https://zenodo.org/record/7346805/files/pigz_2.4.0.img
 
