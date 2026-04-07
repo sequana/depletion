@@ -7,8 +7,11 @@
     :alt: JOSS (journal of open source software) DOI
 
 .. image:: https://github.com/sequana/depletion/actions/workflows/main.yml/badge.svg
-   :target: https://github.com/sequana/depletion/actions/workflows    
+   :target: https://github.com/sequana/depletion/actions/workflows
 
+.. image:: https://img.shields.io/badge/python-3.11%20%7C%203.12-blue.svg
+    :target: https://pypi.python.org/pypi/sequana_depletion
+    :alt: Python 3.11 | 3.12
 
 
 

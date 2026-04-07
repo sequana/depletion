@@ -1,18 +1,16 @@
 name: sequana_depletion
-
 channels:
-  - conda-forge
-  - bioconda
-  - defaults
-
+- conda-forge
+- bioconda
+- defaults
 dependencies:
-  - python>=3.10
-  - bwa
-  - sambamba
-  - samtools>=1.15
-  - pigz
-  - graphviz
-  - pip
-  - pip:
-    - sequana
-    - sequana_pipetools
+- python>=3.10
+- bwa
+- sambamba
+- samtools>=1.15
+- pigz
+- graphviz
+- pulp>=2.8
+- pip:
+  - sequana
+  - sequana_pipetools
